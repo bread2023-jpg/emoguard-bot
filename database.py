@@ -14,6 +14,8 @@ def get_connection():
 def init_db():
     with get_connection() as conn:
         cursor = conn.cursor()
+        
+        # Таблица пользователей с подпиской
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS users (
                 user_id INTEGER PRIMARY KEY,
@@ -24,34 +26,32 @@ def init_db():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
-    
-    # Таблица сообщений (история диалогов)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS messages (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER,
-            role TEXT,
-            content TEXT,
-            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(user_id)
-        )
-    """)
-    
-    # Таблица настроения
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS mood_logs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER,
-            mood TEXT,
-            note TEXT,
-            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(user_id)
-        )
-    """)
-    
-    conn.commit()
-    conn.close()
-    print("✅ База данных инициализирована")
+        
+        # Таблица сообщений
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS messages (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                role TEXT,
+                content TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(user_id)
+            )
+        ''')
+        
+        # Таблица настроения
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS mood_logs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                mood TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(user_id)
+            )
+        ''')
+        
+        conn.commit()
+        print("✅ База данных инициализирована")
 
 # === ФУНКЦИИ ДЛЯ РАБОТЫ С ПОЛЬЗОВАТЕЛЯМИ ===
 
