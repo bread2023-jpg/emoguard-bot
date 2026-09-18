@@ -1,14 +1,11 @@
 import sqlite3
-from datetime import datetime, timedelta
 from datetime import datetime
 
-# Название файла базы данных
 DB_NAME = "emoguard.db"
 
 def get_connection():
-    """Создаёт подключение к базе данных"""
     conn = sqlite3.connect(DB_NAME)
-    conn.row_factory = sqlite3.Row  # Возвращает строки как словари
+    conn.row_factory = sqlite3.Row
     return conn
 
 def init_db():
@@ -39,7 +36,7 @@ def init_db():
             )
         ''')
         
-        # Таблица настроения
+        # Таблица настроения (БЕЗ колонки note!)
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS mood_logs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -53,126 +50,16 @@ def init_db():
         conn.commit()
         print("✅ База данных инициализирована")
 
-# === ФУНКЦИИ ДЛЯ РАБОТЫ С ПОЛЬЗОВАТЕЛЯМИ ===
-
-def add_user(user_id, username=None, first_name=None):
-    """Добавляет нового пользователя"""
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute(
-        "INSERT OR IGNORE INTO users (user_id, username, first_name) VALUES (?, ?, ?)",
-        (user_id, username, first_name)
-    )
-    conn.commit()
-    conn.close()
-
-def get_user(user_id):
-    """Получает информацию о пользователе"""
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM users WHERE user_id = ?", (user_id,))
-    user = cursor.fetchone()
-    conn.close()
-    return user
-
-# === ФУНКЦИИ ДЛЯ РАБОТЫ С СООБЩЕНИЯМИ ===
-
-def save_message(user_id, role, content):
-    """Сохраняет сообщение в историю"""
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute(
-        "INSERT INTO messages (user_id, role, content) VALUES (?, ?, ?)",
-        (user_id, role, content)
-    )
-    conn.commit()
-    conn.close()
-
-def get_recent_messages(user_id, limit=15):
-    """Получает последние N сообщений пользователя"""
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute(
-        """SELECT role, content FROM messages 
-           WHERE user_id = ? 
-           ORDER BY timestamp DESC 
-           LIMIT ?""",
-        (user_id, limit)
-    )
-    rows = cursor.fetchall()
-    conn.close()
-    # Возвращаем в правильном порядке (от старых к новым)
-    return [{"role": row["role"], "content": row["content"]} for row in reversed(rows)]
-
-def clear_user_history(user_id):
-    """Очищает историю сообщений пользователя"""
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM messages WHERE user_id = ?", (user_id,))
-    deleted = cursor.rowcount
-    conn.commit()
-    conn.close()
-    return deleted
-
-def get_message_count(user_id):
-    """Считает количество сообщений пользователя"""
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT COUNT(*) as count FROM messages WHERE user_id = ?", (user_id,))
-    count = cursor.fetchone()["count"]
-    conn.close()
-    return count
-
-# === ФУНКЦИИ ДЛЯ ТРЕКЕРА НАСТРОЕНИЯ ===
-
-def log_mood(user_id, mood, note=None):
-    """Записывает настроение пользователя"""
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute(
-        "INSERT INTO mood_logs (user_id, mood, note) VALUES (?, ?, ?)",
-        (user_id, mood, note)
-    )
-    conn.commit()
-    conn.close()
-
-def get_mood_stats(user_id, days=7):
-    """Получает статистику настроения за N дней"""
-    conn = get_connection()
-    cursor = conn.cursor()
-    cutoff_date = (datetime.now() - timedelta(days=days)).isoformat()
-    
-    cursor.execute(
-        """SELECT mood, COUNT(*) as count 
-           FROM mood_logs 
-           WHERE user_id = ? AND timestamp > ?
-           GROUP BY mood
-           ORDER BY count DESC""",
-        (user_id, cutoff_date)
-    )
-    stats = cursor.fetchall()
-    conn.close()
-    return stats
-
-def get_mood_history(user_id, days=7):
-    """Получает историю настроений за N дней (для графика)"""
-    conn = get_connection()
-    cursor = conn.cursor()
-    cutoff_date = (datetime.now() - timedelta(days=days)).isoformat()
-    
-    cursor.execute(
-        """SELECT mood, timestamp 
-           FROM mood_logs 
-           WHERE user_id = ? AND timestamp > ?
-           ORDER BY timestamp ASC""",
-        (user_id, cutoff_date)
-    )
-    history = cursor.fetchall()
-    conn.close()
-    return history
+def add_user(user_id, username, first_name):
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT OR IGNORE INTO users (user_id, username, first_name) 
+            VALUES (?, ?, ?)
+        ''', (user_id, username, first_name))
+        conn.commit()
 
 def get_user_subscription(user_id):
-    """Получить статус подписки пользователя"""
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute('''
@@ -189,7 +76,6 @@ def get_user_subscription(user_id):
         return {'type': 'free', 'expires': None}
 
 def set_subscription(user_id, subscription_type, expires):
-    """Установить подписку"""
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute('''
@@ -199,8 +85,18 @@ def set_subscription(user_id, subscription_type, expires):
         ''', (subscription_type, expires, user_id))
         conn.commit()
 
+def is_premium(user_id):
+    sub = get_user_subscription(user_id)
+    if sub['type'] == 'premium' and sub['expires']:
+        try:
+            expires = datetime.fromisoformat(sub['expires'])
+            if expires > datetime.now():
+                return True
+        except:
+            pass
+    return False
+
 def get_daily_message_count(user_id):
-    """Получить количество сообщений за сегодня"""
     with get_connection() as conn:
         cursor = conn.cursor()
         today = datetime.now().strftime('%Y-%m-%d')
@@ -211,15 +107,77 @@ def get_daily_message_count(user_id):
         ''', (user_id, f'{today}%'))
         return cursor.fetchone()[0]
 
-def is_premium(user_id):
-    """Проверить, есть ли у пользователя премиум"""
-    sub = get_user_subscription(user_id)
-    if sub['type'] == 'premium' and sub['expires']:
-        from datetime import datetime
-        expires = datetime.fromisoformat(sub['expires'])
-        if expires > datetime.now():
-            return True
-    return False
+def save_message(user_id, role, content):
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT INTO messages (user_id, role, content) 
+            VALUES (?, ?, ?)
+        ''', (user_id, role, content))
+        conn.commit()
+
+def get_recent_messages(user_id, limit=15):
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT role, content FROM messages 
+            WHERE user_id = ? 
+            ORDER BY id DESC 
+            LIMIT ?
+        ''', (user_id, limit))
+        rows = cursor.fetchall()
+        return [{'role': row['role'], 'content': row['content']} for row in reversed(rows)]
+
+def get_message_count(user_id):
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT COUNT(*) FROM messages 
+            WHERE user_id = ? AND role = 'user'
+        ''', (user_id,))
+        return cursor.fetchone()[0]
+
+def clear_user_history(user_id):
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM messages WHERE user_id = ?', (user_id,))
+        deleted = cursor.rowcount
+        conn.commit()
+        return deleted
+
+def log_mood(user_id, mood):
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT INTO mood_logs (user_id, mood) 
+            VALUES (?, ?)
+        ''', (user_id, mood))
+        conn.commit()
+
+def get_mood_stats(user_id, days=7):
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT mood, COUNT(*) as count 
+            FROM mood_logs 
+            WHERE user_id = ? 
+            AND created_at >= datetime('now', '-{} days')
+            GROUP BY mood 
+            ORDER BY count DESC
+        '''.format(days), (user_id,))
+        return [dict(row) for row in cursor.fetchall()]
+
+def get_mood_history(user_id, days=7):
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT mood, created_at 
+            FROM mood_logs 
+            WHERE user_id = ? 
+            AND created_at >= datetime('now', '-{} days')
+            ORDER BY created_at
+        '''.format(days), (user_id,))
+        return [dict(row) for row in cursor.fetchall()]
 
 # Инициализируем БД при импорте
 init_db()
