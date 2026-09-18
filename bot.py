@@ -49,7 +49,7 @@ def get_crisis_response(level):
         return (
             "⚠️ <b>Я вижу, что тебе очень плохо.</b>\n\n"
             "Пожалуйста, прямо сейчас обратись за помощью:\n\n"
-            "📞 <b>Телефон доверия (круглосуточно, бесплатно):</b>\n"
+            " <b>Телефон доверия (круглосуточно, бесплатно):</b>\n"
             "• 8-800-2000-122 (для детей и подростков)\n"
             "• 8-800-333-44-34 (для взрослых)\n\n"
             "🚑 <b>Экстренные службы:</b>\n"
@@ -115,19 +115,19 @@ def call_yandexgpt(messages):
 TECHNIQUES = {
     "breathing": {
         "name": "🌬️ Дыхание 4-7-8",
-        "description": "<b>Дыхательная техника для быстрого успокоения</b>\n\n1️⃣ Сядь удобно\n2️ Вдох через нос на <b>4 счёта</b>\n3️⃣ Задержка на <b>7 счетов</b>\n4️⃣ Выдох через рот на <b>8 счетов</b>\n\nПовтори 4-6 циклов."
+        "description": "<b>Дыхательная техника для быстрого успокоения</b>\n\n1️⃣ Сядь удобно\n2️⃣ Вдох через нос на <b>4 счёта</b>\n3️⃣ Задержка на <b>7 счетов</b>\n4️ Выдох через рот на <b>8 счетов</b>\n\nПовтори 4-6 циклов."
     },
     "grounding": {
-        "name": " Заземление 5-4-3-2-1",
+        "name": "🌍 Заземление 5-4-3-2-1",
         "description": "<b>Техника при тревоге</b>\n\nНайди вокруг:\n👀 <b>5 вещей</b>, которые видишь\n👂 <b>4 звука</b>\n✋ <b>3 ощущения</b>\n👃 <b>2 запаха</b>\n👅 <b>1 вкус</b>"
     },
     "pmr": {
         "name": "💪 Прогрессивная мышечная релаксация",
-        "description": "<b>Расслабление через напряжение</b>\n\n1️ Напряги мышцы стоп на 5 сек\n2️⃣ Расслабь на 10 сек\n3️⃣ Поднимайся: икры → бёдра → живот → руки → плечи → лицо"
+        "description": "<b>Расслабление через напряжение</b>\n\n1️⃣ Напряги мышцы стоп на 5 сек\n2️⃣ Расслабь на 10 сек\n3️ Поднимайся: икры → бёдра → живот → руки → плечи → лицо"
     },
     "safe_place": {
         "name": "🏝️ Безопасное место",
-        "description": "<b>Визуализация</b>\n\n1️⃣ Закрой глаза\n2️⃣ Представь место, где безопасно\n3️ Детализируй: звуки, запахи, ощущения\n4️⃣ Побудь там 2-3 минуты"
+        "description": "<b>Визуализация</b>\n\n1️⃣ Закрой глаза\n2️⃣ Представь место, где безопасно\n3️⃣ Детализируй: звуки, запахи, ощущения\n4️⃣ Побудь там 2-3 минуты"
     },
     "gratitude": {
         "name": "📔 Дневник благодарности",
@@ -135,7 +135,7 @@ TECHNIQUES = {
     },
     "reframing": {
         "name": "🔄 Когнитивный рефрейминг",
-        "description": "<b>Переосмысление мыслей</b>\n\n1️⃣ Запиши мысль\n2️⃣ Спроси: это факт или интерпретация?\n3️⃣ Найди альтернативный взгляд"
+        "description": "<b>Переосмысление мыслей</b>\n\n1️⃣ Запиши мысль\n2️⃣ Спроси: это факт или интерпретация?\n3️ Найди альтернативный взгляд"
     },
     "five_minutes": {
         "name": "⏱️ Правило 5 минут",
@@ -143,7 +143,7 @@ TECHNIQUES = {
     },
     "body_scan": {
         "name": "🧘 Сканирование тела",
-        "description": "<b>Осознанность</b>\n\n1️⃣ Ляг удобно\n2️ Начни с макушки\n3️ Двигайся вниз, расслабляя зоны\n4️⃣ 5-10 минут. Отлично перед сном."
+        "description": "<b>Осознанность</b>\n\n1️⃣ Ляг удобно\n2️⃣ Начни с макушки\n3️⃣ Двигайся вниз, расслабляя зоны\n4️⃣ 5-10 минут. Отлично перед сном."
     }
 }
 
@@ -160,10 +160,10 @@ async def show_techniques_list(message):
     text = "<b>🧘 Техники самопомощи</b>\n\nВыбери технику:\n\n"
     for key, technique in TECHNIQUES.items():
         text += f"• /{key} — {technique['name']}\n"
-    text += "\nИли нажми кнопку для случайной техники 🎲"
+    text += "\nИли нажми кнопку для случайной техники "
     
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🎲 Случайная техника", callback_data="random_technique")]
+        [InlineKeyboardButton(text=" Случайная техника", callback_data="random_technique")]
     ])
     await message.answer(text, parse_mode="HTML", reply_markup=keyboard)
 
@@ -176,8 +176,8 @@ async def cmd_start(message: types.Message):
     db.add_user(user_id, username, first_name)
     
     text = (
-        f"👋 Привет, <b>{first_name or 'друг'}</b>! Я <b>EmoGuard</b> — твой ИИ-помощник по эмоциональному здоровью.\n\n"
-        "⚠️ <b>Важно:</b> я ИИ, а не врач. Мои ответы поддерживают, но не заменяют терапию.\n\n"
+        f" Привет, <b>{first_name or 'друг'}</b>! Я <b>EmoGuard</b> — твой ИИ-помощник по эмоциональному здоровью.\n\n"
+        "️ <b>Важно:</b> я ИИ, а не врач. Мои ответы поддерживают, но не заменяют терапию.\n\n"
         "Теперь я запоминаю наши разговоры и твоё настроение. Выбери, что нужно, или просто напиши 💙"
     )
     await message.answer(text, parse_mode="HTML", reply_markup=main_keyboard)
@@ -186,11 +186,11 @@ async def cmd_start(message: types.Message):
 async def cmd_help(message: types.Message):
     msg_count = db.get_message_count(message.from_user.id)
     text = (
-        "🛠️ <b>Возможности EmoGuard:</b>\n\n"
+        "️ <b>Возможности EmoGuard:</b>\n\n"
         "• 💬 Выслушать и поддержать\n"
         "• 🧘 Предложить техники самопомощи\n"
-        "•  Отслеживать твоё настроение\n"
-        "• 🔄 Очищать историю (/reset)\n\n"
+        "• 📊 Отслеживать твоё настроение\n"
+        "•  Очищать историю (/reset)\n\n"
         f"📝 Ты отправил сообщений: <b>{msg_count}</b>\n\n"
         "🔒 Всё хранится в облаке."
     )
@@ -232,7 +232,7 @@ async def cmd_stats(message: types.Message):
     stats = db.get_mood_stats(user_id, days=7)
     
     if not stats:
-        await message.answer("📊 <b>Статистика пуста</b>\n\nИспользуй /mood, чтобы начать!", parse_mode="HTML")
+        await message.answer(" <b>Статистика пуста</b>\n\nИспользуй /mood, чтобы начать!", parse_mode="HTML")
         return
     
     text = "📊 <b>Твоё настроение за последние 7 дней:</b>\n\n"
@@ -295,7 +295,7 @@ async def cmd_technique_body_scan(message: types.Message):
 @dp.callback_query(F.data == "mood")
 async def process_mood(callback_query: types.CallbackQuery):
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=" Отлично", callback_data="mood_😄")],
+        [InlineKeyboardButton(text="😄 Отлично", callback_data="mood_😄")],
         [InlineKeyboardButton(text="🙂 Нормально", callback_data="mood_🙂")],
         [InlineKeyboardButton(text="😐 Так себе", callback_data="mood_😐")],
         [InlineKeyboardButton(text="😢 Грустно", callback_data="mood_😢")],
@@ -316,7 +316,7 @@ async def process_mood_selection(callback_query: types.CallbackQuery):
         "😄": "Отлично! Рад за тебя! ✨ Что сделало твой день таким хорошим?",
         "🙂": "Хорошо! Стабильность — это тоже ценно. Есть что-то, что хочешь обсудить?",
         "😐": "Понимаю, бывают такие дни. Хочешь поговорить о том, что на душе?",
-        "": "Мне жаль, что тебе грустно. Я здесь. Хочешь рассказать, что случилось?",
+        "😢": "Мне жаль, что тебе грустно. Я здесь. Хочешь рассказать, что случилось?",
         "😰": "Тревога — это тяжело. Давай попробуем разобраться вместе. Что тебя беспокоит?",
         "😡": "Злость — нормальная эмоция. Важно её не подавлять. Что тебя разозлило?",
     }
@@ -339,7 +339,7 @@ async def process_mood_stats(callback_query: types.CallbackQuery):
         text = "📊 <b>Пока нет данных</b>\n\nИспользуй /mood, чтобы отмечать настроение!"
         await callback_query.message.answer(text, parse_mode="HTML")
     else:
-        text = " <b>Твоё настроение за 7 дней:</b>\n\n"
+        text = "📊 <b>Твоё настроение за 7 дней:</b>\n\n"
         total = sum(row["count"] for row in stats)
         for row in stats:
             mood = row["mood"]
@@ -399,7 +399,7 @@ async def check_limits_callback(callback_query: types.CallbackQuery):
         text = "⭐ <b>Premium</b>\n\nСообщений сегодня: безлимит"
     else:
         remaining = limit - count
-        text = f" <b>Бесплатный тариф</b>\n\nИспользовано: {count}/{limit}\nОсталось: {remaining}"
+        text = f"📊 <b>Бесплатный тариф</b>\n\nИспользовано: {count}/{limit}\nОсталось: {remaining}"
     await callback_query.message.answer(text, parse_mode="HTML")
     await callback_query.answer()
 
@@ -412,11 +412,11 @@ async def chat_handler(message: types.Message):
     if user_text and user_text.startswith('/'):
         return
     
-    # 1. ПРОВЕРКА ЛИМИТА (Именно этого не хватало!)
+    # 1. ПРОВЕРКА ЛИМИТА СООБЩЕНИЙ
     can_send, remaining = check_message_limit(user_id)
     if not can_send:
         text = (
-            "️ <b>Лимит сообщений исчерпан</b>\n\n"
+            "⚠️ <b>Лимит сообщений исчерпан</b>\n\n"
             "Вы использовали все 10 бесплатных сообщений на сегодня.\n\n"
             "Оформите Premium подписку для безлимита: /subscription"
         )
@@ -454,7 +454,7 @@ async def chat_handler(message: types.Message):
 # === ЗАПУСК ===
 async def main():
     print("✅ База данных инициализирована")
-    print("🛡️ EmoGuard запущен с системой подписок и лимитами!")
+    print("️ EmoGuard запущен с системой подписок и лимитами!")
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
