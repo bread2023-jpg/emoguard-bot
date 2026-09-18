@@ -380,7 +380,7 @@ async def cmd_random_technique(callback_query: types.CallbackQuery):
     await callback_query.message.answer(text, parse_mode="HTML")
     await callback_query.answer()
 
-# === ОБРАБОТЧИКИ ПОДПИСКИ (должны быть ОТДЕЛЬНЫМИ функциями!) ===
+# === ОБРАБОТЧИКИ ПОДПИСКИ ===
 
 @dp.message(Command("subscription"))
 async def cmd_sub(message: types.Message):
@@ -421,10 +421,11 @@ async def chat_handler(message: types.Message):
     user_id = message.from_user.id
     user_text = message.text
     
+    # Игнорируем команды, они обрабатываются другими хендлерами
     if user_text and user_text.startswith('/'):
         return
     
-    # 1. ПРОВЕРКА ЛИМИТА СООБЩЕНИЙ (Добавлено!)
+    # 1. ПРОВЕРКА ЛИМИТА СООБЩЕНИЙ (Именно этого не хватало!)
     can_send, remaining = check_message_limit(user_id)
     if not can_send:
         text = (
@@ -437,12 +438,14 @@ async def chat_handler(message: types.Message):
 
     db.add_user(user_id, message.from_user.username, message.from_user.first_name)
     
+    # 2. ПРОВЕРКА НА КРИЗИС
     crisis_level = check_crisis_level(user_text)
     if crisis_level > 0:
         await message.answer(get_crisis_response(crisis_level), parse_mode="HTML")
         db.save_message(user_id, "user", user_text)
         return
     
+    # 3. ОБРАБОТКА ОБЫЧНОГО СООБЩЕНИЯ
     db.save_message(user_id, "user", user_text)
     
     history = db.get_recent_messages(user_id, limit=15)
@@ -454,6 +457,7 @@ async def chat_handler(message: types.Message):
     status_msg = await message.answer("🧠 EmoGuard думает...")
 
     try:
+        # ВАЖНО: Используем YandexGPT, а не Ollama!
         ai_response = call_yandexgpt(messages)
         db.save_message(user_id, "assistant", ai_response)
         await status_msg.delete()
@@ -467,7 +471,7 @@ async def chat_handler(message: types.Message):
 
 async def main():
     print("✅ База данных инициализирована")
-    print("🛡️ EmoGuard запущен с системой подписок!")
+    print("🛡️ EmoGuard запущен с системой подписок и лимитами!")
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
