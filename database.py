@@ -1,5 +1,6 @@
 import sqlite3
 from datetime import datetime, timedelta
+from datetime import datetime
 
 # Название файла базы данных
 DB_NAME = "emoguard.db"
@@ -11,19 +12,18 @@ def get_connection():
     return conn
 
 def init_db():
-    """Создаёт таблицы, если их ещё нет"""
-    conn = get_connection()
-    cursor = conn.cursor()
-    
-    # Таблица пользователей
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            user_id INTEGER PRIMARY KEY,
-            username TEXT,
-            first_name TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS users (
+                user_id INTEGER PRIMARY KEY,
+                username TEXT,
+                first_name TEXT,
+                subscription_type TEXT DEFAULT 'free',
+                subscription_expires TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
     
     # Таблица сообщений (история диалогов)
     cursor.execute("""
@@ -170,6 +170,56 @@ def get_mood_history(user_id, days=7):
     history = cursor.fetchall()
     conn.close()
     return history
+
+def get_user_subscription(user_id):
+    """Получить статус подписки пользователя"""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT subscription_type, subscription_expires 
+            FROM users 
+            WHERE user_id = ?
+        ''', (user_id,))
+        result = cursor.fetchone()
+        if result:
+            return {
+                'type': result[0] or 'free',
+                'expires': result[1]
+            }
+        return {'type': 'free', 'expires': None}
+
+def set_subscription(user_id, subscription_type, expires):
+    """Установить подписку"""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            UPDATE users 
+            SET subscription_type = ?, subscription_expires = ?
+            WHERE user_id = ?
+        ''', (subscription_type, expires, user_id))
+        conn.commit()
+
+def get_daily_message_count(user_id):
+    """Получить количество сообщений за сегодня"""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        today = datetime.now().strftime('%Y-%m-%d')
+        cursor.execute('''
+            SELECT COUNT(*) FROM messages 
+            WHERE user_id = ? AND role = 'user' 
+            AND created_at LIKE ?
+        ''', (user_id, f'{today}%'))
+        return cursor.fetchone()[0]
+
+def is_premium(user_id):
+    """Проверить, есть ли у пользователя премиум"""
+    sub = get_user_subscription(user_id)
+    if sub['type'] == 'premium' and sub['expires']:
+        from datetime import datetime
+        expires = datetime.fromisoformat(sub['expires'])
+        if expires > datetime.now():
+            return True
+    return False
 
 # Инициализируем БД при импорте
 init_db()
