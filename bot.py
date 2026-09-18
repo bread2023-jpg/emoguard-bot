@@ -5,7 +5,13 @@ import requests
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-
+from subscription import (
+    cmd_subscription, 
+    process_buy_premium, 
+    process_pre_checkout,
+    process_successful_payment,
+    check_message_limit
+)
 # ВАЖНО: импорт database
 import database as db
 
@@ -374,6 +380,40 @@ async def cmd_random_technique(callback_query: types.CallbackQuery):
     await callback_query.message.answer(text, parse_mode="HTML")
     await callback_query.answer()
 
+# === ОБРАБОТЧИКИ ПОДПИСКИ (должны быть ОТДЕЛЬНЫМИ функциями!) ===
+
+@dp.message(Command("subscription"))
+async def cmd_sub(message: types.Message):
+    await cmd_subscription(message, bot)
+
+@dp.callback_query(F.data == "buy_premium")
+async def buy_premium_callback(callback_query: types.CallbackQuery):
+    await process_buy_premium(callback_query, bot)
+
+@dp.pre_checkout_query()
+async def pre_checkout(pre_checkout_query):
+    await process_pre_checkout(pre_checkout_query, bot)
+
+@dp.message(F.successful_payment)
+async def successful_payment(message: types.Message):
+    await process_successful_payment(message, bot)
+
+@dp.callback_query(F.data == "check_limits")
+async def check_limits_callback(callback_query: types.CallbackQuery):
+    user_id = callback_query.from_user.id
+    count = db.get_daily_message_count(user_id)
+    limit = 10
+    
+    if db.is_premium(user_id):
+        text = "⭐ <b>Premium</b>\n\nСообщений сегодня: безлимит"
+    else:
+        remaining = limit - count
+        text = f"📊 <b>Бесплатный тариф</b>\n\nИспользовано: {count}/{limit}\nОсталось: {remaining}"
+    
+    await callback_query.message.answer(text, parse_mode="HTML")
+    await callback_query.answer()
+
+
 # === ГЛАВНЫЙ ОБРАБОТЧИК ТЕКСТА ===
 
 @dp.message()
@@ -384,6 +424,17 @@ async def chat_handler(message: types.Message):
     if user_text and user_text.startswith('/'):
         return
     
+    # 1. ПРОВЕРКА ЛИМИТА СООБЩЕНИЙ (Добавлено!)
+    can_send, remaining = check_message_limit(user_id)
+    if not can_send:
+        text = (
+            "⚠️ <b>Лимит сообщений исчерпан</b>\n\n"
+            "Вы использовали все 10 бесплатных сообщений на сегодня.\n\n"
+            "Оформите Premium подписку для безлимита: /subscription"
+        )
+        await message.answer(text, parse_mode="HTML")
+        return
+
     db.add_user(user_id, message.from_user.username, message.from_user.first_name)
     
     crisis_level = check_crisis_level(user_text)
@@ -400,7 +451,7 @@ async def chat_handler(message: types.Message):
     for msg in history:
         messages.append({"role": msg["role"], "content": msg["content"]})
     
-    status_msg = await message.answer(" EmoGuard думает...")
+    status_msg = await message.answer("🧠 EmoGuard думает...")
 
     try:
         ai_response = call_yandexgpt(messages)
@@ -411,11 +462,12 @@ async def chat_handler(message: types.Message):
         print(f"Ошибка YandexGPT: {e}")
         await status_msg.edit_text("😔 Проблема. Попробуй ещё раз.")
 
+
 # === ЗАПУСК ===
 
 async def main():
     print("✅ База данных инициализирована")
-    print("🛡️ EmoGuard запущен!")
+    print("🛡️ EmoGuard запущен с системой подписок!")
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
