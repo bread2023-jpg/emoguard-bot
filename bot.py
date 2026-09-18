@@ -1,12 +1,10 @@
 import asyncio
 import os
 import random
-import json
 import requests
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-import database as db
 
 # === ПЕРЕМЕННЫЕ ОКРУЖЕНИЯ ===
 TOKEN = os.environ.get('BOT_TOKEN')
@@ -56,7 +54,7 @@ def get_crisis_response(level):
             "💙 <b>Я слышу, что тебе тяжело.</b>\n\n"
             "Если тебе очень плохо, пожалуйста, поговори с кем-то:\n\n"
             "📞 Телефон доверия: 8-800-2000-122 (бесплатно, круглосуточно)\n"
-            "🚑 Экстренная помощь: 112\n\n"
+            " Экстренная помощь: 112\n\n"
             "А я здесь, чтобы выслушать. Расскажи, что происходит?"
         )
 
@@ -108,23 +106,23 @@ def call_yandexgpt(messages):
 # === БАЗА ТЕХНИК ===
 TECHNIQUES = {
     "breathing": {
-        "name": "️ Дыхание 4-7-8",
+        "name": "🌬️ Дыхание 4-7-8",
         "description": "<b>Дыхательная техника для быстрого успокоения</b>\n\n1️⃣ Сядь удобно\n2️⃣ Вдох через нос на <b>4 счёта</b>\n3️⃣ Задержка на <b>7 счетов</b>\n4️⃣ Выдох через рот на <b>8 счетов</b>\n\nПовтори 4-6 циклов."
     },
     "grounding": {
-        "name": " Заземление 5-4-3-2-1",
-        "description": "<b>Техника при тревоге</b>\n\nНайди вокруг:\n👀 <b>5 вещей</b>, которые видишь\n👂 <b>4 звука</b>\n✋ <b>3 ощущения</b>\n👃 <b>2 запаха</b>\n👅 <b>1 вкус</b>"
+        "name": "🌍 Заземление 5-4-3-2-1",
+        "description": "<b>Техника при тревоге</b>\n\nНайди вокруг:\n👀 <b>5 вещей</b>, которые видишь\n👂 <b>4 звука</b>\n✋ <b>3 ощущения</b>\n <b>2 запаха</b>\n <b>1 вкус</b>"
     },
     "pmr": {
         "name": "💪 Прогрессивная мышечная релаксация",
-        "description": "<b>Расслабление через напряжение</b>\n\n1️⃣ Напряги мышцы стоп на 5 сек\n2️⃣ Расслабь на 10 сек\n3️⃣ Поднимайся: икры → бёдра → живот → руки → плечи → лицо"
+        "description": "<b>Расслабление через напряжение</b>\n\n1️⃣ Напряги мышцы стоп на 5 сек\n2️ Расслабь на 10 сек\n3️⃣ Поднимайся: икры → бёдра → живот → руки → плечи → лицо"
     },
     "safe_place": {
         "name": "🏝️ Безопасное место",
-        "description": "<b>Визуализация</b>\n\n1️⃣ Закрой глаза\n2️⃣ Представь место, где безопасно\n3️⃣ Детализируй: звуки, запахи, ощущения\n4️⃣ Побудь там 2-3 минуты"
+        "description": "<b>Визуализация</b>\n\n1️⃣ Закрой глаза\n2️ Представь место, где безопасно\n3️ Детализируй: звуки, запахи, ощущения\n4️⃣ Побудь там 2-3 минуты"
     },
     "gratitude": {
-        "name": "📔 Дневник благодарности",
+        "name": " Дневник благодарности",
         "description": "<b>Смещение фокуса на позитив</b>\n\nНапиши 3 вещи, за которые благодарен сегодня. Даже маленькие: вкусный кофе, улыбка, тёплая одежда."
     },
     "reframing": {
@@ -144,21 +142,21 @@ TECHNIQUES = {
 # === КЛАВИАТУРЫ ===
 main_keyboard = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="😊 Как я себя чувствую?", callback_data="mood")],
-    [InlineKeyboardButton(text=" Техники самопомощи", callback_data="techniques")],
-    [InlineKeyboardButton(text=" Моё настроение", callback_data="mood_stats")],
-    [InlineKeyboardButton(text=" Экстренная помощь", callback_data="crisis")],
+    [InlineKeyboardButton(text="🧘 Техники самопомощи", callback_data="techniques")],
+    [InlineKeyboardButton(text="📊 Моё настроение", callback_data="mood_stats")],
+    [InlineKeyboardButton(text="🆘 Экстренная помощь", callback_data="crisis")],
 ])
 
 # === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
 
 async def show_techniques_list(message):
-    text = "<b>🧘 Техники самопомощи</b>\n\nВыбери технику:\n\n"
+    text = "<b> Техники самопомощи</b>\n\nВыбери технику:\n\n"
     for key, technique in TECHNIQUES.items():
         text += f"• /{key} — {technique['name']}\n"
-    text += "\nИли нажми кнопку для случайной техники "
+    text += "\nИли нажми кнопку для случайной техники 🎲"
     
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=" Случайная техника", callback_data="random_technique")]
+        [InlineKeyboardButton(text="🎲 Случайная техника", callback_data="random_technique")]
     ])
     await message.answer(text, parse_mode="HTML", reply_markup=keyboard)
 
@@ -170,3 +168,252 @@ async def cmd_start(message: types.Message):
     username = message.from_user.username
     first_name = message.from_user.first_name
     
+    db.add_user(user_id, username, first_name)
+    
+    text = (
+        f"👋 Привет, <b>{first_name or 'друг'}</b>! Я <b>EmoGuard</b> — твой ИИ-помощник по эмоциональному здоровью.\n\n"
+        "⚠️ <b>Важно:</b> я ИИ, а не врач. Мои ответы поддерживают, но не заменяют терапию.\n\n"
+        "Теперь я запоминаю наши разговоры и твоё настроение. Выбери, что нужно, или просто напиши 💙"
+    )
+    await message.answer(text, parse_mode="HTML", reply_markup=main_keyboard)
+
+@dp.message(Command("help"))
+async def cmd_help(message: types.Message):
+    msg_count = db.get_message_count(message.from_user.id)
+    text = (
+        "🛠️ <b>Возможности EmoGuard:</b>\n\n"
+        "• 💬 Выслушать и поддержать\n"
+        "•  Предложить техники самопомощи\n"
+        "• 📊 Отслеживать твоё настроение\n"
+        "• 🔄 Очищать историю (/reset)\n\n"
+        f"📝 Ты отправил сообщений: <b>{msg_count}</b>\n\n"
+        "🔒 Всё хранится в облаке."
+    )
+    await message.answer(text, parse_mode="HTML", reply_markup=main_keyboard)
+
+@dp.message(Command("mood"))
+async def cmd_mood(message: types.Message):
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="😄 Отлично", callback_data="mood_😄")],
+        [InlineKeyboardButton(text="🙂 Нормально", callback_data="mood_🙂")],
+        [InlineKeyboardButton(text="😐 Так себе", callback_data="mood_😐")],
+        [InlineKeyboardButton(text="😢 Грустно", callback_data="mood_😢")],
+        [InlineKeyboardButton(text="😰 Тревожно", callback_data="mood_😰")],
+        [InlineKeyboardButton(text="😡 Злюсь", callback_data="mood_😡")],
+    ])
+    text = "😊 <b>Как ты себя чувствуешь прямо сейчас?</b>\n\nВыбери эмоцию:"
+    await message.answer(text, parse_mode="HTML", reply_markup=keyboard)
+
+@dp.message(Command("techniques"))
+async def cmd_techniques_list(message: types.Message):
+    await show_techniques_list(message)
+
+@dp.message(Command("crisis"))
+async def cmd_crisis(message: types.Message):
+    text = (
+        "⚠️ <b>Экстренная помощь</b>\n\n"
+        " <b>Телефон доверия (Россия):</b>\n"
+        "• 8-800-2000-122 (дети и подростки)\n"
+        "• 8-800-333-44-34 (взрослые)\n\n"
+        " <b>Экстренные службы:</b>\n"
+        "• 112 — единый номер\n"
+        "• 103 — скорая помощь"
+    )
+    await message.answer(text, parse_mode="HTML")
+
+@dp.message(Command("stats"))
+async def cmd_stats(message: types.Message):
+    user_id = message.from_user.id
+    stats = db.get_mood_stats(user_id, days=7)
+    
+    if not stats:
+        await message.answer("📊 <b>Статистика пуста</b>\n\nИспользуй /mood, чтобы начать!", parse_mode="HTML")
+        return
+    
+    text = "📊 <b>Твоё настроение за последние 7 дней:</b>\n\n"
+    total = sum(row["count"] for row in stats)
+    
+    for row in stats:
+        mood = row["mood"]
+        count = row["count"]
+        percentage = int((count / total) * 100)
+        bar = "█" * (percentage // 5)
+        text += f"{mood} <b>{count} раз</b> ({percentage}%)\n{bar}\n\n"
+    
+    await message.answer(text, parse_mode="HTML")
+
+@dp.message(Command("reset"))
+async def cmd_reset(message: types.Message):
+    user_id = message.from_user.id
+    deleted = db.clear_user_history(user_id)
+    
+    text = (
+        f"🔄 <b>История очищена</b>\n\n"
+        f"Удалено сообщений: {deleted}\n"
+        "Начнём с чистого листа? 💙"
+    )
+    await message.answer(text, parse_mode="HTML")
+
+@dp.message(Command("breathing"))
+async def cmd_technique_breathing(message: types.Message):
+    await message.answer(TECHNIQUES["breathing"]["description"], parse_mode="HTML")
+
+@dp.message(Command("grounding"))
+async def cmd_technique_grounding(message: types.Message):
+    await message.answer(TECHNIQUES["grounding"]["description"], parse_mode="HTML")
+
+@dp.message(Command("pmr"))
+async def cmd_technique_pmr(message: types.Message):
+    await message.answer(TECHNIQUES["pmr"]["description"], parse_mode="HTML")
+
+@dp.message(Command("safe_place"))
+async def cmd_technique_safe_place(message: types.Message):
+    await message.answer(TECHNIQUES["safe_place"]["description"], parse_mode="HTML")
+
+@dp.message(Command("gratitude"))
+async def cmd_technique_gratitude(message: types.Message):
+    await message.answer(TECHNIQUES["gratitude"]["description"], parse_mode="HTML")
+
+@dp.message(Command("reframing"))
+async def cmd_technique_reframing(message: types.Message):
+    await message.answer(TECHNIQUES["reframing"]["description"], parse_mode="HTML")
+
+@dp.message(Command("five_minutes"))
+async def cmd_technique_five_minutes(message: types.Message):
+    await message.answer(TECHNIQUES["five_minutes"]["description"], parse_mode="HTML")
+
+@dp.message(Command("body_scan"))
+async def cmd_technique_body_scan(message: types.Message):
+    await message.answer(TECHNIQUES["body_scan"]["description"], parse_mode="HTML")
+
+# === ОБРАБОТЧИКИ КНОПОК ===
+
+@dp.callback_query(F.data == "mood")
+async def process_mood(callback_query: types.CallbackQuery):
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="😄 Отлично", callback_data="mood_😄")],
+        [InlineKeyboardButton(text="🙂 Нормально", callback_data="mood_🙂")],
+        [InlineKeyboardButton(text="😐 Так себе", callback_data="mood_😐")],
+        [InlineKeyboardButton(text="😢 Грустно", callback_data="mood_😢")],
+        [InlineKeyboardButton(text="😰 Тревожно", callback_data="mood_😰")],
+        [InlineKeyboardButton(text="😡 Злюсь", callback_data="mood_😡")],
+    ])
+    text = "😊 <b>Как ты себя чувствуешь прямо сейчас?</b>\n\nВыбери эмоцию:"
+    await callback_query.message.answer(text, parse_mode="HTML", reply_markup=keyboard)
+    await callback_query.answer()
+
+@dp.callback_query(F.data.startswith("mood_"))
+async def process_mood_selection(callback_query: types.CallbackQuery):
+    mood = callback_query.data.split("_", 1)[1]
+    user_id = callback_query.from_user.id
+    
+    db.log_mood(user_id, mood)
+    
+    responses = {
+        "😄": "Отлично! Рад за тебя! ✨ Что сделало твой день таким хорошим?",
+        "🙂": "Хорошо! Стабильность — это тоже ценно. Есть что-то, что хочешь обсудить?",
+        "😐": "Понимаю, бывают такие дни. Хочешь поговорить о том, что на душе?",
+        "😢": "Мне жаль, что тебе грустно. Я здесь. Хочешь рассказать, что случилось?",
+        "😰": "Тревога — это тяжело. Давай попробуем разобраться вместе. Что тебя беспокоит?",
+        "😡": "Злость — нормальная эмоция. Важно её не подавлять. Что тебя разозлило?",
+    }
+    
+    text = f"Записал твоё настроение: {mood}\n\n{responses.get(mood, '')}"
+    await callback_query.message.answer(text)
+    await callback_query.answer()
+
+@dp.callback_query(F.data == "techniques")
+async def process_techniques_button(callback_query: types.CallbackQuery):
+    await show_techniques_list(callback_query.message)
+    await callback_query.answer()
+
+@dp.callback_query(F.data == "mood_stats")
+async def process_mood_stats(callback_query: types.CallbackQuery):
+    user_id = callback_query.from_user.id
+    stats = db.get_mood_stats(user_id, days=7)
+    
+    if not stats:
+        text = "📊 <b>Пока нет данных</b>\n\nИспользуй /mood, чтобы отмечать настроение!"
+        await callback_query.message.answer(text, parse_mode="HTML")
+    else:
+        text = "📊 <b>Твоё настроение за 7 дней:</b>\n\n"
+        total = sum(row["count"] for row in stats)
+        for row in stats:
+            mood = row["mood"]
+            count = row["count"]
+            percentage = int((count / total) * 100)
+            bar = "█" * (percentage // 5)
+            text += f"{mood} <b>{count} раз</b> ({percentage}%)\n{bar}\n\n"
+        
+        await callback_query.message.answer(text, parse_mode="HTML")
+    
+    await callback_query.answer()
+
+@dp.callback_query(F.data == "crisis")
+async def process_crisis(callback_query: types.CallbackQuery):
+    text = (
+        "⚠️ <b>Экстренная помощь</b>\n\n"
+        "📞 <b>Телефон доверия:</b>\n"
+        "• 8-800-2000-122\n"
+        "• 8-800-333-44-34\n\n"
+        "🚑 <b>Экстренные службы:</b>\n"
+        "• 112\n"
+        "• 103"
+    )
+    await callback_query.message.answer(text, parse_mode="HTML")
+    await callback_query.answer()
+
+@dp.callback_query(F.data == "random_technique")
+async def cmd_random_technique(callback_query: types.CallbackQuery):
+    technique_key = random.choice(list(TECHNIQUES.keys()))
+    technique = TECHNIQUES[technique_key]
+    text = f"<b>🎲 Случайная техника:</b>\n\n{technique['description']}"
+    await callback_query.message.answer(text, parse_mode="HTML")
+    await callback_query.answer()
+
+# === ГЛАВНЫЙ ОБРАБОТЧИК ТЕКСТА ===
+
+@dp.message()
+async def chat_handler(message: types.Message):
+    user_id = message.from_user.id
+    user_text = message.text
+    
+    if user_text and user_text.startswith('/'):
+        return
+    
+    db.add_user(user_id, message.from_user.username, message.from_user.first_name)
+    
+    crisis_level = check_crisis_level(user_text)
+    if crisis_level > 0:
+        await message.answer(get_crisis_response(crisis_level), parse_mode="HTML")
+        db.save_message(user_id, "user", user_text)
+        return
+    
+    db.save_message(user_id, "user", user_text)
+    
+    history = db.get_recent_messages(user_id, limit=15)
+    
+    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+    for msg in history:
+        messages.append({"role": msg["role"], "content": msg["content"]})
+    
+    status_msg = await message.answer("🧠 EmoGuard думает...")
+
+    try:
+        ai_response = call_yandexgpt(messages)
+        db.save_message(user_id, "assistant", ai_response)
+        await status_msg.delete()
+        await message.answer(ai_response)
+    except Exception as e:
+        print(f"Ошибка YandexGPT: {e}")
+        await status_msg.edit_text("😔 Проблема. Попробуй ещё раз.")
+
+# === ЗАПУСК ===
+
+async def main():
+    print("✅ База данных инициализирована")
+    print("🛡️ EmoGuard запущен!")
+    await dp.start_polling(bot)
+
+if __name__ == "__main__":
+    asyncio.run(main())
