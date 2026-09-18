@@ -44,7 +44,7 @@ def get_crisis_response(level):
         return (
             "⚠️ <b>Я вижу, что тебе очень плохо.</b>\n\n"
             "Пожалуйста, прямо сейчас обратись за помощью:\n\n"
-            "📞 <b>Телефон доверия (круглосуточно, бесплатно):</b>\n"
+            " <b>Телефон доверия (круглосуточно, бесплатно):</b>\n"
             "• 8-800-2000-122 (для детей и подростков)\n"
             "• 8-800-333-44-34 (для взрослых)\n\n"
             "🚑 <b>Экстренные службы:</b>\n"
@@ -54,7 +54,7 @@ def get_crisis_response(level):
         )
     else:
         return (
-            "💙 <b>Я слышу, что тебе тяжело.</b>\n\n"
+            " <b>Я слышу, что тебе тяжело.</b>\n\n"
             "Если тебе очень плохо, пожалуйста, поговори с кем-то:\n\n"
             "📞 Телефон доверия: 8-800-2000-122 (бесплатно, круглосуточно)\n"
             "🚑 Экстренная помощь: 112\n\n"
@@ -122,18 +122,18 @@ TECHNIQUES = {
     },
     "safe_place": {
         "name": "🏝️ Безопасное место",
-        "description": "<b>Визуализация</b>\n\n1️⃣ Закрой глаза\n2️ Представь место, где безопасно\n3️⃣ Детализируй: звуки, запахи, ощущения\n4️⃣ Побудь там 2-3 минуты"
+        "description": "<b>Визуализация</b>\n\n1️⃣ Закрой глаза\n2️⃣ Представь место, где безопасно\n3️ Детализируй: звуки, запахи, ощущения\n4️⃣ Побудь там 2-3 минуты"
     },
     "gratitude": {
-        "name": " Дневник благодарности",
+        "name": "📔 Дневник благодарности",
         "description": "<b>Смещение фокуса на позитив</b>\n\nНапиши 3 вещи, за которые благодарен сегодня. Даже маленькие: вкусный кофе, улыбка, тёплая одежда."
     },
     "reframing": {
         "name": "🔄 Когнитивный рефрейминг",
-        "description": "<b>Переосмысление мыслей</b>\n\n1️⃣ Запиши мысль\n2️⃣ Спроси: это факт или интерпретация?\n3️⃣ Найди альтернативный взгляд"
+        "description": "<b>Переосмысление мыслей</b>\n\n1️⃣ Запиши мысль\n2️ Спроси: это факт или интерпретация?\n3️⃣ Найди альтернативный взгляд"
     },
     "five_minutes": {
-        "name": "⏱️ Правило 5 минут",
+        "name": "️ Правило 5 минут",
         "description": "<b>Борьба с прокрастинацией</b>\n\nСкажи: 'Я позанимаюсь этим 5 минут'. Поставь таймер. Начни. Чаще всего ты продолжишь."
     },
     "body_scan": {
@@ -184,12 +184,12 @@ async def cmd_start(message: types.Message):
 async def cmd_help(message: types.Message):
     msg_count = db.get_message_count(message.from_user.id)
     text = (
-        "️ <b>Возможности EmoGuard:</b>\n\n"
+        "🛠️ <b>Возможности EmoGuard:</b>\n\n"
         "• 💬 Выслушать и поддержать\n"
-        "• 🧘 Предложить техники самопомощи\n"
+        "•  Предложить техники самопомощи\n"
         "• 📊 Отслеживать твоё настроение\n"
         "• 🔄 Очищать историю (/reset)\n\n"
-        f" Ты отправил сообщений: <b>{msg_count}</b>\n\n"
+        f"📝 Ты отправил сообщений: <b>{msg_count}</b>\n\n"
         "🔒 Всё хранится в облаке."
     )
     await message.answer(text, parse_mode="HTML", reply_markup=main_keyboard)
@@ -200,9 +200,9 @@ async def cmd_mood(message: types.Message):
         [InlineKeyboardButton(text="😄 Отлично", callback_data="mood_😄")],
         [InlineKeyboardButton(text="🙂 Нормально", callback_data="mood_🙂")],
         [InlineKeyboardButton(text="😐 Так себе", callback_data="mood_😐")],
-        [InlineKeyboardButton(text="😢 Грустно", callback_data="mood_😢")],
-        [InlineKeyboardButton(text="😰 Тревожно", callback_data="mood_😰")],
-        [InlineKeyboardButton(text="😡 Злюсь", callback_data="mood_😡")],
+        [InlineKeyboardButton(text="😢 Грустно", callback_data="mood_")],
+        [InlineKeyboardButton(text=" Тревожно", callback_data="mood_")],
+        [InlineKeyboardButton(text=" Злюсь", callback_data="mood_")],
     ])
     text = "😊 <b>Как ты себя чувствуешь прямо сейчас?</b>\n\nВыбери эмоцию:"
     await message.answer(text, parse_mode="HTML", reply_markup=keyboard)
@@ -218,7 +218,7 @@ async def cmd_crisis(message: types.Message):
         "📞 <b>Телефон доверия (Россия):</b>\n"
         "• 8-800-2000-122 (дети и подростки)\n"
         "• 8-800-333-44-34 (взрослые)\n\n"
-        " <b>Экстренные службы:</b>\n"
+        "🚑 <b>Экстренные службы:</b>\n"
         "• 112 — единый номер\n"
         "• 103 — скорая помощь"
     )
@@ -294,12 +294,12 @@ async def cmd_technique_body_scan(message: types.Message):
 @dp.callback_query(F.data == "mood")
 async def process_mood(callback_query: types.CallbackQuery):
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="😄 Отлично", callback_data="mood_😄")],
+        [InlineKeyboardButton(text="😄 Отлично", callback_data="mood_")],
         [InlineKeyboardButton(text="🙂 Нормально", callback_data="mood_🙂")],
         [InlineKeyboardButton(text="😐 Так себе", callback_data="mood_😐")],
-        [InlineKeyboardButton(text="😢 Грустно", callback_data="mood_")],
-        [InlineKeyboardButton(text=" Тревожно", callback_data="mood_")],
-        [InlineKeyboardButton(text=" Злюсь", callback_data="mood_")],
+        [InlineKeyboardButton(text="😢 Грустно", callback_data="mood_😢")],
+        [InlineKeyboardButton(text="😰 Тревожно", callback_data="mood_😰")],
+        [InlineKeyboardButton(text="😡 Злюсь", callback_data="mood_😡")],
     ])
     text = "😊 <b>Как ты себя чувствуешь прямо сейчас?</b>\n\nВыбери эмоцию:"
     await callback_query.message.answer(text, parse_mode="HTML", reply_markup=keyboard)
@@ -316,7 +316,7 @@ async def process_mood_selection(callback_query: types.CallbackQuery):
         "😄": "Отлично! Рад за тебя! ✨ Что сделало твой день таким хорошим?",
         "🙂": "Хорошо! Стабильность — это тоже ценно. Есть что-то, что хочешь обсудить?",
         "😐": "Понимаю, бывают такие дни. Хочешь поговорить о том, что на душе?",
-        "": "Мне жаль, что тебе грустно. Я здесь. Хочешь рассказать, что случилось?",
+        "😢": "Мне жаль, что тебе грустно. Я здесь. Хочешь рассказать, что случилось?",
         "😰": "Тревога — это тяжело. Давай попробуем разобраться вместе. Что тебя беспокоит?",
         "😡": "Злость — нормальная эмоция. Важно её не подавлять. Что тебя разозлило?",
     }
@@ -336,10 +336,10 @@ async def process_mood_stats(callback_query: types.CallbackQuery):
     stats = db.get_mood_stats(user_id, days=7)
     
     if not stats:
-        text = " <b>Пока нет данных</b>\n\nИспользуй /mood, чтобы отмечать настроение!"
+        text = "📊 <b>Пока нет данных</b>\n\nИспользуй /mood, чтобы отмечать настроение!"
         await callback_query.message.answer(text, parse_mode="HTML")
     else:
-        text = " <b>Твоё настроение за 7 дней:</b>\n\n"
+        text = "📊 <b>Твоё настроение за 7 дней:</b>\n\n"
         total = sum(row["count"] for row in stats)
         for row in stats:
             mood = row["mood"]
@@ -356,7 +356,7 @@ async def process_mood_stats(callback_query: types.CallbackQuery):
 async def process_crisis(callback_query: types.CallbackQuery):
     text = (
         "⚠️ <b>Экстренная помощь</b>\n\n"
-        "📞 <b>Телефон доверия:</b>\n"
+        " <b>Телефон доверия:</b>\n"
         "• 8-800-2000-122\n"
         "• 8-800-333-44-34\n\n"
         "🚑 <b>Экстренные службы:</b>\n"
@@ -370,7 +370,7 @@ async def process_crisis(callback_query: types.CallbackQuery):
 async def cmd_random_technique(callback_query: types.CallbackQuery):
     technique_key = random.choice(list(TECHNIQUES.keys()))
     technique = TECHNIQUES[technique_key]
-    text = f"<b> Случайная техника:</b>\n\n{technique['description']}"
+    text = f"<b>🎲 Случайная техника:</b>\n\n{technique['description']}"
     await callback_query.message.answer(text, parse_mode="HTML")
     await callback_query.answer()
 
@@ -400,7 +400,7 @@ async def chat_handler(message: types.Message):
     for msg in history:
         messages.append({"role": msg["role"], "content": msg["content"]})
     
-    status_msg = await message.answer("🧠 EmoGuard думает...")
+    status_msg = await message.answer(" EmoGuard думает...")
 
     try:
         ai_response = call_yandexgpt(messages)
