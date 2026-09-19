@@ -20,7 +20,7 @@ if not OPENROUTER_API_KEY:
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
-# === OPENROUTER API (Llama 3) ===
+# === OPENROUTER API (БЕЗ ПРОКСИ!) ===
 client = OpenAI(
     base_url="https://openrouter.ai/api/v1",
     api_key=OPENROUTER_API_KEY,
@@ -49,7 +49,7 @@ def check_crisis(text):
     return any(kw in text.lower() for kw in CRISIS_KEYWORDS)
 
 def get_crisis_response():
-    return "⚠️ <b>Я вижу, что тебе очень плохо.</b>\n\nПожалуйста, позвони:\n 8-800-2000-122\n🚑 112\n\nТы не один! 💙"
+    return "⚠️ <b>Я вижу, что тебе очень плохо.</b>\n\nПожалуйста, позвони:\n📞 8-800-2000-122\n🚑 112\n\nТы не один! 💙"
 
 # === КЛАВИАТУРА ===
 main_kb = InlineKeyboardMarkup(inline_keyboard=[
@@ -61,7 +61,7 @@ main_kb = InlineKeyboardMarkup(inline_keyboard=[
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
     db.add_user(message.from_user.id, message.from_user.username, message.from_user.first_name)
-    await message.answer(f" Привет! Я EmoGuard 💙\n\nПросто напиши мне или выбери кнопку.", reply_markup=main_kb)
+    await message.answer(f"👋 Привет! Я EmoGuard 💙\n\nПросто напиши мне или выбери кнопку.", reply_markup=main_kb)
 
 @dp.callback_query(F.data == "mood")
 async def process_mood(callback_query: types.CallbackQuery):
@@ -81,7 +81,7 @@ async def process_mood_selection(callback_query: types.CallbackQuery):
 
 @dp.callback_query(F.data == "techniques")
 async def process_techniques_button(callback_query: types.CallbackQuery):
-    await callback_query.message.answer("🧘 Попробуй:\n• /breathing — Дыхание\n• /grounding — Заземление")
+    await callback_query.message.answer("🧘 Попробуй:\n• /breathing\n• /grounding")
     await callback_query.answer()
 
 # === ГЛАВНЫЙ ОБРАБОТЧИК ===
@@ -107,7 +107,7 @@ async def chat_handler(message: types.Message):
     status_msg = await message.answer("🧠 Думаю...")
     
     try:
-        ai_response = call_ai(messages)  # OpenRouter вместо Ollama!
+        ai_response = call_ai(messages)  # OpenRouter БЕЗ прокси!
         db.save_message(user_id, "assistant", ai_response)
         await status_msg.delete()
         await message.answer(ai_response)
@@ -117,7 +117,7 @@ async def chat_handler(message: types.Message):
 
 async def main():
     print("✅ База данных инициализирована")
-    print("🛡️ EmoGuard запущен с OpenRouter (Llama 3)!")
+    print("🛡️ EmoGuard запущен с OpenRouter!")
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
